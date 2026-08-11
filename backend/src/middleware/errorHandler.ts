@@ -46,7 +46,7 @@ export const errorHandler = (
         message: 'Record not found',
       });
     }
-    if (err.code === 'P2034') {
+    if (err.code === 'P2034' || err.code === 'P2028') {
       return res.status(409).json({
         success: false,
         message: 'Operation conflict due to concurrent update. Please retry.',

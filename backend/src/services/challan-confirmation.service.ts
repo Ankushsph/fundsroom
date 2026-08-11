@@ -122,10 +122,6 @@ export async function confirmChallan(challanId: string) {
         challan: confirmedChallan,
         movements,
       };
-    },
-    {
-      // Use serializable isolation level to prevent race conditions
-      isolationLevel: 'Serializable',
     }
   );
 
