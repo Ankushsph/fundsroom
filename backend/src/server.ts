@@ -15,6 +15,14 @@ app.use(cors({ origin: config.cors.origin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
+app.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'Fundsroom ERP API Server',
+    health: '/api/health',
+  });
+});
+
 app.get('/api/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;

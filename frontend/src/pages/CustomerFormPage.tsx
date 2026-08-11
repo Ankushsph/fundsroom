@@ -66,7 +66,13 @@ export const CustomerFormPage: React.FC = () => {
       }
       navigate('/customers');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save customer');
+      const apiData = err.response?.data;
+      if (apiData?.error && Array.isArray(apiData.error)) {
+        const details = apiData.error.map((e: any) => `${e.field}: ${e.message}`).join('; ');
+        setError(`${apiData.message} (${details})`);
+      } else {
+        setError(apiData?.message || 'Failed to save customer');
+      }
     } finally {
       setIsSaving(false);
     }

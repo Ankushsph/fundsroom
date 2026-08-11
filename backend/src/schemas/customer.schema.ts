@@ -6,7 +6,17 @@ export const createCustomerSchema = z.object({
   mobile: z.string().regex(/^\d{10,15}$/, 'Mobile must be 10-15 digits'),
   email: z.string().email('Invalid email address'),
   businessName: z.string().min(1, 'Business name is required').max(200),
-  gstNumber: z.string().regex(/^[A-Z0-9]{15}$/, 'Invalid GST number').optional().or(z.literal('')),
+  gstNumber: z
+    .string()
+    .trim()
+    .transform((val) => val.toUpperCase())
+    .refine(
+      (val) => val === '' || /^[A-Z0-9]{15}$/.test(val),
+      'GST number must be 15 alphanumeric characters (e.g. 29ABCDE1234F1Z5)'
+    )
+    .optional()
+    .nullable()
+    .or(z.literal('')),
   customerType: z.enum([CustomerType.RETAIL, CustomerType.WHOLESALE, CustomerType.DISTRIBUTOR]),
   address: z.string().min(1, 'Address is required').max(1000),
   status: z.enum([CustomerStatus.LEAD, CustomerStatus.ACTIVE, CustomerStatus.INACTIVE]).default(CustomerStatus.LEAD),
