@@ -11,3 +11,12 @@ dist/
 *.swo
 *~
 .cache
+
+# TypeScript build artifacts
+*.d.ts
+*.d.ts.map
+*.js
+*.js.map
+!vite.config.ts
+!tailwind.config.js
+!postcss.config.js
