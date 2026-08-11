@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/ApiError';
 import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
+import { config } from '../config/env';
 
 export const errorHandler = (
   err: Error,
@@ -9,9 +10,10 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
-  console.error('Error:', err);
+  if (config.nodeEnv !== 'production') {
+    console.error('Error:', err);
+  }
 
-  // Handle ApiError
   if (err instanceof ApiError) {
     return res.status(err.statusCode).json({
       success: false,
@@ -20,7 +22,6 @@ export const errorHandler = (
     });
   }
 
-  // Handle Zod validation errors
   if (err instanceof ZodError) {
     return res.status(400).json({
       success: false,
@@ -32,13 +33,11 @@ export const errorHandler = (
     });
   }
 
-  // Handle Prisma errors
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {
       return res.status(409).json({
         success: false,
         message: 'Duplicate entry',
-        error: { field: err.meta?.target },
       });
     }
     if (err.code === 'P2025') {
@@ -47,9 +46,14 @@ export const errorHandler = (
         message: 'Record not found',
       });
     }
+    if (err.code === 'P2034') {
+      return res.status(409).json({
+        success: false,
+        message: 'Operation conflict due to concurrent update. Please retry.',
+      });
+    }
   }
 
-  // Default error
   return res.status(500).json({
     success: false,
     message: 'Internal server error',

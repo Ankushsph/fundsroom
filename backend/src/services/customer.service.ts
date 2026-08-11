@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/ApiError';
 import { CreateCustomerRequest, UpdateCustomerRequest } from '../schemas/customer.schema';
-
-const prisma = new PrismaClient();
 
 export async function getCustomers(
   page: number = 1,
@@ -202,8 +200,12 @@ export async function updateCustomerNote(customerId: string, noteId: string, not
   return updated;
 }
 
-export async function deleteCustomerNote(customerId: string, noteId: string) {
-  await getCustomerNote(customerId, noteId);
+export async function deleteCustomerNote(customerId: string, noteId: string, userId: string, userRole: string) {
+  const note = await getCustomerNote(customerId, noteId);
+
+  if (userRole !== 'ADMIN' && note.createdById !== userId) {
+    throw new ApiError(403, 'You can only delete your own notes');
+  }
 
   await prisma.customerNote.delete({
     where: { id: noteId },

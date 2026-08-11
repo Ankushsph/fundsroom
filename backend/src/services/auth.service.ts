@@ -1,10 +1,8 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { config } from '../config/env';
 import { ApiError } from '../utils/ApiError';
-
-const prisma = new PrismaClient();
 
 export async function authenticateUser(email: string, password: string) {
   // Find user by email

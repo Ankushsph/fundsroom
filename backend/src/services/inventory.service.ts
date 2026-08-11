@@ -1,8 +1,7 @@
-import { PrismaClient, MovementType } from '@prisma/client';
+import { MovementType } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/ApiError';
 import { StockInRequest, StockOutRequest } from '../schemas/inventory.schema';
-
-const prisma = new PrismaClient();
 
 export async function addStockIn(data: StockInRequest, userId: string) {
   // Verify product exists and is active
@@ -12,6 +11,10 @@ export async function addStockIn(data: StockInRequest, userId: string) {
 
   if (!product) {
     throw new ApiError(404, 'Product not found');
+  }
+
+  if (!product.isActive) {
+    throw new ApiError(400, 'Cannot add stock to an inactive product');
   }
 
   // Use transaction to atomically update stock and create movement record
@@ -53,6 +56,10 @@ export async function addStockOut(data: StockOutRequest, userId: string) {
     throw new ApiError(404, 'Product not found');
   }
 
+  if (!product.isActive) {
+    throw new ApiError(400, 'Cannot remove stock from an inactive product');
+  }
+
   // Check if sufficient stock
   if (product.currentStock < data.quantity) {
     throw new ApiError(400, `Insufficient stock. Available: ${product.currentStock}, Requested: ${data.quantity}`);
@@ -60,26 +67,23 @@ export async function addStockOut(data: StockOutRequest, userId: string) {
 
   // Use transaction to atomically verify, update stock, and create movement record
   const result = await prisma.$transaction(async (tx) => {
-    // Re-verify stock within transaction to handle concurrent requests
-    const current = await tx.product.findUnique({
-      where: { id: data.productId },
-    });
+    const updateResult = await tx.$executeRaw`
+      UPDATE "products"
+      SET "currentStock" = "currentStock" - ${data.quantity},
+          "updatedAt" = NOW()
+      WHERE "id" = ${data.productId}
+      AND "currentStock" >= ${data.quantity}
+      AND "isActive" = true
+    `;
 
-    if (!current || current.currentStock < data.quantity) {
-      throw new ApiError(400, `Insufficient stock. Available: ${current?.currentStock || 0}, Requested: ${data.quantity}`);
+    if (updateResult === 0) {
+      throw new ApiError(400, 'Insufficient stock for this product');
     }
 
-    // Update product stock
-    const updated = await tx.product.update({
+    const updated = await tx.product.findUniqueOrThrow({
       where: { id: data.productId },
-      data: {
-        currentStock: {
-          decrement: data.quantity,
-        },
-      },
     });
 
-    // Create stock movement record
     const movement = await tx.stockMovement.create({
       data: {
         productId: data.productId,

@@ -76,10 +76,13 @@ export const LoginPage: React.FC = () => {
         </form>
 
         <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-600 text-center">Test Credentials:</p>
-          <p className="text-xs text-gray-500 text-center mt-2">
-            admin@fundsroom.com / Admin@123
-          </p>
+          <p className="text-sm text-gray-600 text-center mb-2">Test Credentials:</p>
+          <div className="space-y-1 text-xs text-gray-500 text-center">
+            <p><strong>ADMIN:</strong> admin@fundsroom.com / Admin@123</p>
+            <p><strong>SALES:</strong> sales@fundsroom.com / Sales@123</p>
+            <p><strong>WAREHOUSE:</strong> warehouse@fundsroom.com / Warehouse@123</p>
+            <p><strong>ACCOUNTS:</strong> accounts@fundsroom.com / Accounts@123</p>
+          </div>
         </div>
       </div>
     </div>

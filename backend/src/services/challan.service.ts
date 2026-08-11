@@ -1,8 +1,7 @@
-import { PrismaClient, ChallanStatus } from '@prisma/client';
+import { ChallanStatus, MovementType } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/ApiError';
 import { CreateChallanRequest, UpdateChallanRequest } from '../schemas/challan.schema';
-
-const prisma = new PrismaClient();
 
 // Generate unique challan number (CH-YYYYMMDD-SEQUENTIAL)
 async function generateChallanNumber(): Promise<string> {
@@ -190,25 +189,65 @@ export async function updateChallan(id: string, data: UpdateChallanRequest) {
   return updated;
 }
 
-export async function cancelChallan(id: string) {
+export async function cancelChallan(id: string, userId: string) {
   const challan = await getChallan(id);
 
-  // Only DRAFT or CONFIRMED can be cancelled
+  if (challan.status === ChallanStatus.CANCELLED) {
+    throw new ApiError(400, 'Challan is already cancelled');
+  }
+
   if (challan.status !== ChallanStatus.DRAFT && challan.status !== ChallanStatus.CONFIRMED) {
     throw new ApiError(400, `Cannot cancel ${challan.status} challan`);
   }
 
-  const cancelled = await prisma.salesChallan.update({
-    where: { id },
-    data: { status: ChallanStatus.CANCELLED },
-    include: {
-      items: true,
-      customer: true,
-      createdBy: {
-        select: { id: true, name: true, email: true },
+  if (challan.status === ChallanStatus.DRAFT) {
+    return prisma.salesChallan.update({
+      where: { id },
+      data: { status: ChallanStatus.CANCELLED },
+      include: {
+        items: true,
+        customer: true,
+        createdBy: {
+          select: { id: true, name: true, email: true },
+        },
       },
-    },
-  });
+    });
+  }
 
-  return cancelled;
+  // CONFIRMED: restore stock atomically
+  return prisma.$transaction(
+    async (tx) => {
+      for (const item of challan.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            currentStock: { increment: item.quantity },
+          },
+        });
+
+        await tx.stockMovement.create({
+          data: {
+            productId: item.productId,
+            quantityChanged: item.quantity,
+            movementType: MovementType.IN,
+            reason: `Challan ${challan.challanNumber} cancellation - stock restored`,
+            createdById: userId,
+          },
+        });
+      }
+
+      return tx.salesChallan.update({
+        where: { id },
+        data: { status: ChallanStatus.CANCELLED },
+        include: {
+          items: true,
+          customer: true,
+          createdBy: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      });
+    },
+    { isolationLevel: 'Serializable' }
+  );
 }

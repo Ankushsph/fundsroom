@@ -7,8 +7,10 @@ export interface User {
 
 export interface AuthResponse {
   success: boolean;
-  token: string;
-  user: User;
+  data: {
+    token: string;
+    user: User;
+  };
 }
 
 export interface LoginRequest {

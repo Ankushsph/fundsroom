@@ -11,7 +11,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 
 export const stockInHandler = asyncHandler(async (req: Request, res: Response) => {
   const validated = stockInSchema.parse(req.body);
-  const userId = (req as any).user.userId;
+  const userId = req.user!.id;
 
   const result = await addStockIn(validated, userId);
 
@@ -23,7 +23,7 @@ export const stockInHandler = asyncHandler(async (req: Request, res: Response) =
 
 export const stockOutHandler = asyncHandler(async (req: Request, res: Response) => {
   const validated = stockOutSchema.parse(req.body);
-  const userId = (req as any).user.userId;
+  const userId = req.user!.id;
 
   const result = await addStockOut(validated, userId);
 

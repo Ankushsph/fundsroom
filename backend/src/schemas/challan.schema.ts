@@ -7,11 +7,23 @@ export const createChallanItemSchema = z.object({
 
 export const createChallanSchema = z.object({
   customerId: z.string().min(1, 'Customer ID is required'),
-  items: z.array(createChallanItemSchema).min(1, 'At least one item is required'),
+  items: z
+    .array(createChallanItemSchema)
+    .min(1, 'At least one item is required')
+    .refine(
+      (items) => new Set(items.map((i) => i.productId)).size === items.length,
+      'Duplicate products are not allowed in a challan'
+    ),
 });
 
 export const updateChallanSchema = z.object({
-  items: z.array(createChallanItemSchema).min(1, 'At least one item is required'),
+  items: z
+    .array(createChallanItemSchema)
+    .min(1, 'At least one item is required')
+    .refine(
+      (items) => new Set(items.map((i) => i.productId)).size === items.length,
+      'Duplicate products are not allowed in a challan'
+    ),
 });
 
 export type CreateChallanItemRequest = z.infer<typeof createChallanItemSchema>;

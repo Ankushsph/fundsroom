@@ -1,14 +1,13 @@
 import express from 'express';
 import { login, getMe } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
-import { asyncHandler } from '../utils/asyncHandler';
 
 const router = express.Router();
 
 // Public endpoints
-router.post('/login', asyncHandler(login));
+router.post('/login', login);
 
 // Protected endpoints
-router.get('/me', authenticate, asyncHandler(getMe));
+router.get('/me', authenticate, getMe);
 
 export default router;

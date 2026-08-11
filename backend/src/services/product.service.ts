@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/ApiError';
 import { CreateProductRequest, UpdateProductRequest } from '../schemas/product.schema';
-
-const prisma = new PrismaClient();
 
 export async function getProducts(
   page: number = 1,

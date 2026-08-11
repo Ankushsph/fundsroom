@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import { authenticateUser, getCurrentUser } from '../services/auth.service';
 import { loginSchema } from '../schemas/auth.schema';
 import { ApiError } from '../utils/ApiError';
+import { asyncHandler } from '../utils/asyncHandler';
 
-export async function login(req: Request, res: Response) {
+export const login = asyncHandler(async (req: Request, res: Response) => {
   // Validate request body
   const validation = loginSchema.safeParse(req.body);
   if (!validation.success) {
@@ -24,9 +25,9 @@ export async function login(req: Request, res: Response) {
       user,
     },
   });
-}
+});
 
-export async function getMe(req: Request, res: Response) {
+export const getMe = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new ApiError(401, 'Authentication required');
   }
@@ -37,4 +38,4 @@ export async function getMe(req: Request, res: Response) {
     success: true,
     data: user,
   });
-}
+});

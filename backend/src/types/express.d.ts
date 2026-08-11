@@ -2,13 +2,17 @@ import { Role } from '@prisma/client';
 
 declare global {
   namespace Express {
+    interface UserPayload {
+      id: string;
+      email: string;
+      name: string;
+      role: Role;
+    }
+
     interface Request {
-      user?: {
-        id: string;
-        email: string;
-        name: string;
-        role: Role;
-      };
+      user?: UserPayload;
     }
   }
 }
+
+export {};

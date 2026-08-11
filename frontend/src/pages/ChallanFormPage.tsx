@@ -88,10 +88,8 @@ export const ChallanFormPage: React.FC = () => {
         customerId: formData.customerId,
         items: formData.items.map((item) => ({
           productId: item.productId,
-          quantity: parseInt(item.quantity),
-          remarks: item.remarks,
+          quantity: parseInt(item.quantity, 10),
         })),
-        remarks: formData.remarks,
       };
 
       if (isEdit && id) {

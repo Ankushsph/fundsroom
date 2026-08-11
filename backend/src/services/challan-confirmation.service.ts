@@ -1,7 +1,6 @@
-import { PrismaClient, ChallanStatus, MovementType } from '@prisma/client';
+import { ChallanStatus, MovementType } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { ApiError } from '../utils/ApiError';
-
-const prisma = new PrismaClient();
 
 export async function confirmChallan(challanId: string) {
   // Use transaction for atomic operations
@@ -58,11 +57,23 @@ export async function confirmChallan(challanId: string) {
         });
       }
 
-      // 3. Atomic stock deduction using raw SQL to prevent race conditions
-      // This ensures the update only happens if stock is still sufficient
+      // 3. Atomic transition of challan status from DRAFT to CONFIRMED
+      // This prevents double-confirmation if concurrent requests target the same challan
+      const updatedChallanCount = await tx.$executeRaw`
+        UPDATE "sales_challans"
+        SET "status" = 'CONFIRMED'::"ChallanStatus",
+            "confirmedAt" = NOW(),
+            "updatedAt" = NOW()
+        WHERE "id" = ${challanId}
+        AND "status" = 'DRAFT'::"ChallanStatus"
+      `;
 
+      if (updatedChallanCount === 0) {
+        throw new ApiError(400, 'Challan is no longer in DRAFT status or is being processed by another transaction');
+      }
+
+      // 4. Atomic stock deduction using raw SQL to prevent negative stock or race conditions
       for (const item of productsToDeduct) {
-        // Use raw SQL for conditional update that cannot fail silently
         const updateResult = await tx.$executeRaw`
           UPDATE "products"
           SET "currentStock" = "currentStock" - ${item.quantity},
@@ -72,7 +83,6 @@ export async function confirmChallan(challanId: string) {
           AND "isActive" = true
         `;
 
-        // If zero rows were updated, it means stock is insufficient (race condition or earlier failure)
         if (updateResult === 0) {
           throw new ApiError(
             400,
@@ -81,9 +91,8 @@ export async function confirmChallan(challanId: string) {
         }
       }
 
-      // 4. Create STOCK OUT movement records for each deducted item
+      // 5. Create STOCK OUT movement records for each deducted item
       const movements = [];
-
       for (const item of productsToDeduct) {
         const movement = await tx.stockMovement.create({
           data: {
@@ -94,17 +103,12 @@ export async function confirmChallan(challanId: string) {
             createdById: challan.createdById,
           },
         });
-
         movements.push(movement);
       }
 
-      // 5. Update challan status to CONFIRMED and set confirmedAt timestamp
-      const confirmedChallan = await tx.salesChallan.update({
+      // 6. Fetch confirmed challan details
+      const confirmedChallan = await tx.salesChallan.findUniqueOrThrow({
         where: { id: challanId },
-        data: {
-          status: ChallanStatus.CONFIRMED,
-          confirmedAt: new Date(),
-        },
         include: {
           items: true,
           customer: true,

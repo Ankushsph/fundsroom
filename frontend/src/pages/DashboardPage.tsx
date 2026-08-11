@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { customerApi, productApi, challanApi } from '../services/api';
 
 interface DashboardStats {
   totalCustomers: number;
@@ -22,47 +23,17 @@ export const DashboardPage: React.FC = () => {
     try {
       setLoading(true);
       const [customersRes, productsRes, challansDraftRes, challansConfirmedRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/api/customers?limit=1`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }),
-        fetch(`${import.meta.env.VITE_API_URL}/api/products?active=true&limit=1`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }),
-        fetch(`${import.meta.env.VITE_API_URL}/api/challans?status=DRAFT&limit=1`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }),
-        fetch(`${import.meta.env.VITE_API_URL}/api/challans?status=CONFIRMED&limit=1`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }),
+        customerApi.getAll(1, 1),
+        productApi.getAll(1, 1, undefined, true),
+        challanApi.getAll(1, 1, 'DRAFT'),
+        challanApi.getAll(1, 1, 'CONFIRMED'),
       ]);
 
-      let totalCustomers = 0;
-      let activeProducts = 0;
-      let draftChallans = 0;
-      let confirmedChallans = 0;
-
-      if (customersRes.ok) {
-        const data = await customersRes.json();
-        totalCustomers = data.total || 0;
-      }
-      if (productsRes.ok) {
-        const data = await productsRes.json();
-        activeProducts = data.total || 0;
-      }
-      if (challansDraftRes.ok) {
-        const data = await challansDraftRes.json();
-        draftChallans = data.total || 0;
-      }
-      if (challansConfirmedRes.ok) {
-        const data = await challansConfirmedRes.json();
-        confirmedChallans = data.total || 0;
-      }
-
       setStats({
-        totalCustomers,
-        activeProducts,
-        draftChallans,
-        confirmedChallans,
+        totalCustomers: customersRes.data.pagination?.total || 0,
+        activeProducts: productsRes.data.pagination?.total || 0,
+        draftChallans: challansDraftRes.data.pagination?.total || 0,
+        confirmedChallans: challansConfirmedRes.data.pagination?.total || 0,
       });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -83,7 +54,6 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Customers Card */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-600">Total Customers</h3>
           <p className="text-3xl font-bold text-gray-900 mt-2">
@@ -91,7 +61,6 @@ export const DashboardPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Products Card */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-600">Active Products</h3>
           <p className="text-3xl font-bold text-gray-900 mt-2">
@@ -99,7 +68,6 @@ export const DashboardPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Draft Challans Card */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-600">Draft Challans</h3>
           <p className="text-3xl font-bold text-gray-900 mt-2">
@@ -107,7 +75,6 @@ export const DashboardPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Confirmed Challans Card */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-600">Confirmed Challans</h3>
           <p className="text-3xl font-bold text-gray-900 mt-2">

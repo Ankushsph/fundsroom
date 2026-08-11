@@ -110,7 +110,7 @@ export const getCustomerNotesHandler = asyncHandler(async (req: Request, res: Re
 export const createCustomerNoteHandler = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const validated = createNoteSchema.parse(req.body);
-  const userId = (req as any).user.userId;
+  const userId = req.user!.id;
 
   const note = await createCustomerNote(id, validated.noteText, userId);
 
@@ -134,7 +134,7 @@ export const updateCustomerNoteHandler = asyncHandler(async (req: Request, res: 
 
 export const deleteCustomerNoteHandler = asyncHandler(async (req: Request, res: Response) => {
   const { id, noteId } = req.params;
-  await deleteCustomerNote(id, noteId);
+  await deleteCustomerNote(id, noteId, req.user!.id, req.user!.role);
 
   res.json({
     success: true,

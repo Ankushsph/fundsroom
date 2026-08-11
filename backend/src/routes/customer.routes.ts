@@ -43,6 +43,6 @@ router.post('/:id/notes', requireRole('ADMIN', 'SALES'), createCustomerNoteHandl
 router.put('/:id/notes/:noteId', requireRole('ADMIN', 'SALES'), updateCustomerNoteHandler);
 
 // Delete customer note - ADMIN can delete any note, SALES can delete their own
-router.delete('/:id/notes/:noteId', requireRole('ADMIN'), deleteCustomerNoteHandler);
+router.delete('/:id/notes/:noteId', requireRole('ADMIN', 'SALES'), deleteCustomerNoteHandler);
 
 export default router;
