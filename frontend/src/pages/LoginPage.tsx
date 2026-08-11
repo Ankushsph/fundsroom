@@ -76,9 +76,9 @@ export const LoginPage: React.FC = () => {
         </form>
 
         <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-600 text-center">Demo Credentials:</p>
+          <p className="text-sm text-gray-600 text-center">Test Credentials:</p>
           <p className="text-xs text-gray-500 text-center mt-2">
-            admin@example.com / password123
+            admin@fundsroom.com / Admin@123
           </p>
         </div>
       </div>

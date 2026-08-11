@@ -12,7 +12,7 @@ A full-stack ERP/CRM system for wholesale/distribution companies, built with Nod
 - JWT Authentication
 - Zod Validation
 
-**Frontend (Coming Soon):**
+**Frontend:**
 - React + TypeScript + Vite
 - Tailwind CSS
 
