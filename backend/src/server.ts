@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { config } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
+import authRoutes from './routes/auth.routes';
 
 const app = express();
 
@@ -20,7 +21,8 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Routes will be added here in later phases
+// Routes
+app.use('/api/auth', authRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
