@@ -13,6 +13,16 @@ build/
 */dist/
 */build/
 
+# TypeScript build artifacts
+**/*.d.ts
+**/*.d.ts.map
+**/*.js
+**/*.js.map
+# Exceptions for config files
+!vite.config.ts
+!tailwind.config.js
+!postcss.config.js
+
 # IDE
 .vscode/
 .idea/
