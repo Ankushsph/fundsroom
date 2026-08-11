@@ -107,20 +107,59 @@ npm run preview        # local preview of production build
 
 Set `VITE_API_URL` to your deployed backend URL (e.g. `https://api.example.com/api`) before building.
 
-## Deployment Notes
+## Deployment to Render
 
-**Recommended stack (free tier):**
-- Frontend: Vercel / Netlify / Render Static Site
-- Backend: Render / Railway / Fly.io
-- Database: Neon / Supabase / Render Postgres
+### Option A: 1-Click Render Blueprint (Recommended)
 
-**Checklist:**
-1. Set strong `JWT_SECRET` in production
-2. Set `CORS_ORIGIN` to your frontend URL (no wildcard in production)
-3. Set `VITE_API_URL` to your backend URL before frontend build
-4. Run `prisma migrate deploy` on the production database
-5. Run `prisma db seed` once for initial users (development credentials only)
-6. Never commit `.env` files
+1. Push your repository to GitHub.
+2. Log into [Render Dashboard](https://dashboard.render.com).
+3. Click **New +** -> **Blueprint**.
+4. Connect your GitHub repository. Render will automatically detect `render.yaml` and configure:
+   - **PostgreSQL Database** (`fundsroom-db`)
+   - **Backend Web Service** (`fundsroom-backend`)
+   - **Frontend Static Site** (`fundsroom-frontend`)
+5. Click **Apply**. Render will automatically provision the database, build the backend, run Prisma database migrations (`npx prisma migrate deploy`), build the React frontend, and cross-link all environment variables (`DATABASE_URL`, `CORS_ORIGIN`, `VITE_API_URL`, `JWT_SECRET`).
+6. *(Optional)* Seed production database with initial users:
+   Go to **fundsroom-backend** on Render -> **Shell** tab -> run:
+   ```bash
+   npx prisma db seed
+   ```
+
+---
+
+### Option B: Manual Setup on Render
+
+#### 1. PostgreSQL Database
+1. On Render, create a **New PostgreSQL** instance (`fundsroom-db`).
+2. Copy the **Internal Database URL** or **External Database URL**.
+
+#### 2. Backend Web Service
+1. Create a **New Web Service** connected to your repo.
+2. Settings:
+   - **Root Directory**: `backend`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npx prisma migrate deploy && npm start`
+   - **Health Check Path**: `/api/health`
+3. Environment Variables:
+   - `NODE_ENV` = `production`
+   - `DATABASE_URL` = *(Your Render/Neon PostgreSQL connection string)*
+   - `JWT_SECRET` = *(A long random secret string)*
+   - `CORS_ORIGIN` = *(Your Render frontend URL, e.g. `https://fundsroom-frontend.onrender.com`)*
+   - `JWT_EXPIRES_IN` = `7d`
+
+#### 3. Frontend Static Site
+1. Create a **New Static Site** connected to your repo.
+2. Settings:
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+3. Environment Variables:
+   - `VITE_API_URL` = `https://your-backend-service.onrender.com/api`
+4. Redirects / Rewrites:
+   - Add rewrite rule: `/*` -> `/index.html` (Status `200`) for SPA routing.
+
+---
 
 ## Key Business Rules
 
