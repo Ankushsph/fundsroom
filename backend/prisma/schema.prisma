@@ -1,0 +1,192 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Role {
+  ADMIN
+  SALES
+  WAREHOUSE
+  ACCOUNTS
+}
+
+enum CustomerType {
+  RETAIL
+  WHOLESALE
+  DISTRIBUTOR
+}
+
+enum CustomerStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+}
+
+enum MovementType {
+  IN
+  OUT
+}
+
+enum ChallanStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customerNotes  CustomerNote[]
+  stockMovements StockMovement[]
+  challans       SalesChallan[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Customer {
+  id           String         @id @default(cuid())
+  name         String
+  mobile       String
+  email        String
+  businessName String
+  gstNumber    String?
+  customerType CustomerType
+  address      String         @db.Text
+  status       CustomerStatus @default(LEAD)
+  followUpDate DateTime?
+  isDeleted    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  notes    CustomerNote[]
+  challans SalesChallan[]
+
+  @@index([name])
+  @@index([email])
+  @@index([mobile])
+  @@index([status])
+  @@index([customerType])
+  @@index([followUpDate])
+  @@index([isDeleted])
+  @@map("customers")
+}
+
+model CustomerNote {
+  id          String   @id @default(cuid())
+  customerId  String
+  noteText    String   @db.Text
+  createdById String
+  createdAt   DateTime @default(now())
+
+  customer  Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdBy User     @relation(fields: [createdById], references: [id])
+
+  @@index([customerId])
+  @@index([createdAt])
+  @@map("customer_notes")
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  sku           String   @unique
+  category      String
+  unitPrice     Decimal  @db.Decimal(10, 2)
+  currentStock  Int      @default(0)
+  minStockAlert Int      @default(0)
+  location      String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  stockMovements StockMovement[]
+  challanItems   ChallanItem[]
+
+  @@index([sku])
+  @@index([name])
+  @@index([category])
+  @@index([isActive])
+  @@index([currentStock])
+  @@map("products")
+}
+
+model StockMovement {
+  id              String       @id @default(cuid())
+  productId       String
+  quantityChanged Int
+  movementType    MovementType
+  reason          String       @db.Text
+  createdById     String
+  createdAt       DateTime     @default(now())
+
+  product   Product @relation(fields: [productId], references: [id])
+  createdBy User    @relation(fields: [createdById], references: [id])
+
+  @@index([productId])
+  @@index([createdAt])
+  @@index([movementType])
+  @@map("stock_movements")
+}
+
+model SalesChallan {
+  id            String        @id @default(cuid())
+  challanNumber String        @unique
+  customerId    String
+  status        ChallanStatus @default(DRAFT)
+  totalQuantity Int
+  createdById   String
+  createdAt     DateTime      @default(now())
+  confirmedAt   DateTime?
+  updatedAt     DateTime      @updatedAt
+
+  customer  Customer      @relation(fields: [customerId], references: [id])
+  createdBy User          @relation(fields: [createdById], references: [id])
+  items     ChallanItem[]
+
+  @@index([challanNumber])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
+  @@map("sales_challans")
+}
+
+model ChallanItem {
+  id          String  @id @default(cuid())
+  challanId   String
+  productId   String
+  productName String
+  productSku  String
+  unitPrice   Decimal @db.Decimal(10, 2)
+  quantity    Int
+  lineTotal   Decimal @db.Decimal(10, 2)
+
+  challan SalesChallan @relation(fields: [challanId], references: [id], onDelete: Cascade)
+  product Product      @relation(fields: [productId], references: [id])
+
+  @@index([challanId])
+  @@index([productId])
+  @@map("challan_items")
+}

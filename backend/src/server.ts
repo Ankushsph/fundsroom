@@ -1,0 +1,35 @@
+import express from 'express';
+import cors from 'cors';
+import { config } from './config/env';
+import { errorHandler } from './middleware/errorHandler';
+
+const app = express();
+
+// Middleware
+app.use(cors({ origin: config.cors.origin, credentials: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Health check endpoint
+app.get('/api/health', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'Fundsroom ERP API is running',
+    timestamp: new Date().toISOString(),
+    environment: config.nodeEnv,
+  });
+});
+
+// Routes will be added here in later phases
+
+// Error handler (must be last)
+app.use(errorHandler);
+
+// Start server
+app.listen(config.port, () => {
+  console.log(`🚀 Server running on port ${config.port}`);
+  console.log(`📝 Environment: ${config.nodeEnv}`);
+  console.log(`🔗 Health check: http://localhost:${config.port}/api/health`);
+});
+
+export default app;
