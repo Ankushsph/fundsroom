@@ -7,6 +7,11 @@ import { DashboardPage } from './pages/DashboardPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { CustomerFormPage } from './pages/CustomerFormPage';
+import { ProductsPage } from './pages/ProductsPage';
+import { ProductFormPage } from './pages/ProductFormPage';
+import { InventoryPage } from './pages/InventoryPage';
+import { ChallansPage } from './pages/ChallansPage';
+import { ChallanDetailPage } from './pages/ChallanDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { MainLayout } from './layouts/MainLayout';
 
@@ -29,6 +34,12 @@ export const App: React.FC = () => {
             <Route path="/customers/new" element={<CustomerFormPage />} />
             <Route path="/customers/:id" element={<CustomerDetailPage />} />
             <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/new" element={<ProductFormPage />} />
+            <Route path="/products/:id/edit" element={<ProductFormPage />} />
+            <Route path="/inventory/:productId" element={<InventoryPage />} />
+            <Route path="/challans" element={<ChallansPage />} />
+            <Route path="/challans/:id" element={<ChallanDetailPage />} />
             <Route index element={<Navigate to="/dashboard" replace />} />
           </Route>
 
