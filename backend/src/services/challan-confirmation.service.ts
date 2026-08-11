@@ -60,7 +60,6 @@ export async function confirmChallan(challanId: string) {
 
       // 3. Atomic stock deduction using raw SQL to prevent race conditions
       // This ensures the update only happens if stock is still sufficient
-      const deductionResults = [];
 
       for (const item of productsToDeduct) {
         // Use raw SQL for conditional update that cannot fail silently
@@ -80,12 +79,6 @@ export async function confirmChallan(challanId: string) {
             `Stock check failed for ${item.sku}. This may indicate concurrent confirmation or insufficient stock.`
           );
         }
-
-        deductionResults.push({
-          productId: item.productId,
-          quantity: item.quantity,
-          sku: item.sku,
-        });
       }
 
       // 4. Create STOCK OUT movement records for each deducted item

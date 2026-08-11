@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { productApi } from '../services/api';
 
@@ -12,7 +12,7 @@ export const ProductsPage: React.FC = () => {
 
   const limit = 10;
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     setError('');
     try {
@@ -24,7 +24,7 @@ export const ProductsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, search]);
 
   useEffect(() => {
     fetchProducts();

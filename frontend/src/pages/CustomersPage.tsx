@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { customerApi } from '../services/api';
 import { Customer } from '../types';
@@ -13,7 +13,7 @@ export const CustomersPage: React.FC = () => {
 
   const limit = 10;
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     setIsLoading(true);
     setError('');
     try {
@@ -25,7 +25,7 @@ export const CustomersPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, search]);
 
   useEffect(() => {
     fetchCustomers();

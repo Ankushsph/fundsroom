@@ -50,12 +50,21 @@ A full-stack ERP/CRM system for wholesale/distribution companies, built with Nod
    npx prisma db seed
    ```
 
-4. **Start server**
+4. **Start backend server**
    ```bash
    npm run dev
    ```
    
    API available at `http://localhost:5000`
+
+5. **Setup frontend** (in another terminal)
+   ```bash
+   cd ../frontend
+   npm install
+   npm run dev
+   ```
+   
+   Frontend available at `http://localhost:5173`
 
 ### Test Credentials
 

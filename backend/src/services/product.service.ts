@@ -57,18 +57,6 @@ export async function getProductById(id: string) {
   return product;
 }
 
-export async function getProductBySku(sku: string) {
-  const product = await prisma.product.findUnique({
-    where: { sku },
-  });
-
-  if (!product) {
-    throw new ApiError(404, 'Product not found');
-  }
-
-  return product;
-}
-
 export async function createProduct(data: CreateProductRequest) {
   // Check for duplicate SKU
   const existingProduct = await prisma.product.findUnique({

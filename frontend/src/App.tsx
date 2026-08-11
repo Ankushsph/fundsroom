@@ -10,8 +10,10 @@ import { CustomerFormPage } from './pages/CustomerFormPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { ProductFormPage } from './pages/ProductFormPage';
 import { InventoryPage } from './pages/InventoryPage';
+import { InventoryLandingPage } from './pages/InventoryLandingPage';
 import { ChallansPage } from './pages/ChallansPage';
 import { ChallanDetailPage } from './pages/ChallanDetailPage';
+import { ChallanFormPage } from './pages/ChallanFormPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { MainLayout } from './layouts/MainLayout';
 
@@ -37,9 +39,12 @@ export const App: React.FC = () => {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/new" element={<ProductFormPage />} />
             <Route path="/products/:id/edit" element={<ProductFormPage />} />
+            <Route path="/inventory" element={<InventoryLandingPage />} />
             <Route path="/inventory/:productId" element={<InventoryPage />} />
             <Route path="/challans" element={<ChallansPage />} />
+            <Route path="/challans/new" element={<ChallanFormPage />} />
             <Route path="/challans/:id" element={<ChallanDetailPage />} />
+            <Route path="/challans/:id/edit" element={<ChallanFormPage />} />
             <Route index element={<Navigate to="/dashboard" replace />} />
           </Route>
 

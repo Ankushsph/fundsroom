@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { productApi, inventoryApi } from '../services/api';
 
@@ -12,25 +12,26 @@ export const InventoryPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (productId) {
-          const [prodRes, movRes] = await Promise.all([
-            productApi.getById(productId),
-            inventoryApi.getProductMovements(productId),
-          ]);
-          setProduct(prodRes.data.data);
-          setMovements(movRes.data.data || []);
-        }
-      } catch {
-        setError('Failed to load inventory data');
-      } finally {
-        setIsLoading(false);
+  const fetchInventoryData = useCallback(async () => {
+    try {
+      if (productId) {
+        const [prodRes, movRes] = await Promise.all([
+          productApi.getById(productId),
+          inventoryApi.getProductMovements(productId),
+        ]);
+        setProduct(prodRes.data.data);
+        setMovements(movRes.data.data || []);
       }
-    };
-    fetchData();
+    } catch {
+      setError('Failed to load inventory data');
+    } finally {
+      setIsLoading(false);
+    }
   }, [productId]);
+
+  useEffect(() => {
+    fetchInventoryData();
+  }, [fetchInventoryData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,12 +50,7 @@ export const InventoryPage: React.FC = () => {
 
       setFormData({ quantity: '', reason: '' });
 
-      const [prodRes, movRes] = await Promise.all([
-        productApi.getById(productId),
-        inventoryApi.getProductMovements(productId),
-      ]);
-      setProduct(prodRes.data.data);
-      setMovements(movRes.data.data || []);
+      await fetchInventoryData();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to record movement');
     } finally {

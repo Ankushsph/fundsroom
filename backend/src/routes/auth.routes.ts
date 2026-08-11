@@ -9,6 +9,6 @@ const router = express.Router();
 router.post('/login', asyncHandler(login));
 
 // Protected endpoints
-router.get('/me', asyncHandler(authenticate), asyncHandler(getMe));
+router.get('/me', authenticate, asyncHandler(getMe));
 
 export default router;
