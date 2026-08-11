@@ -6,6 +6,7 @@ import {
   updateChallan,
   cancelChallan,
 } from '../services/challan.service';
+import { confirmChallan } from '../services/challan-confirmation.service';
 import { createChallanSchema, updateChallanSchema } from '../schemas/challan.schema';
 import { ApiError } from '../utils/ApiError';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -63,6 +64,18 @@ export const updateChallanHandler = asyncHandler(async (req: Request, res: Respo
 
   res.json({
     success: true,
+    data: challan,
+  });
+});
+
+export const confirmChallanHandler = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const challan = await confirmChallan(id);
+
+  res.json({
+    success: true,
+    message: 'Challan confirmed successfully',
     data: challan,
   });
 });

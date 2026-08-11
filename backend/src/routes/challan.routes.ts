@@ -6,6 +6,7 @@ import {
   getChallanHandler,
   getChallansHandler,
   updateChallanHandler,
+  confirmChallanHandler,
   cancelChallanHandler,
 } from '../controllers/challan.controller';
 
@@ -25,6 +26,9 @@ router.post('/', requireRole('ADMIN', 'SALES'), createChallanHandler);
 
 // Update challan (DRAFT only) - ADMIN, SALES can update
 router.put('/:id', requireRole('ADMIN', 'SALES'), updateChallanHandler);
+
+// Confirm challan (DRAFT -> CONFIRMED, atomic stock deduction) - ADMIN, SALES can confirm
+router.post('/:id/confirm', requireRole('ADMIN', 'SALES'), confirmChallanHandler);
 
 // Cancel challan - ADMIN, SALES can cancel
 router.post('/:id/cancel', requireRole('ADMIN', 'SALES'), cancelChallanHandler);
